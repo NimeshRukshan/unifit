@@ -10,6 +10,8 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../navigation/types";
 import theme from "../theme";
+import { StatusBar } from "expo-status-bar";
+import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
 
 export default function Index() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -18,7 +20,8 @@ export default function Index() {
     <ImageBackground
       source={require("../assets/images/background.jpg")}
       style={styles.container}
-      resizeMode="cover" // Ensures image covers the screen
+      resizeMode="cover"
+      alt="Background Image"
     >
       <View style={styles.overlay}>
         {/* Brand Section */}
@@ -32,28 +35,37 @@ export default function Index() {
 
         {/* Main Content Section */}
         <View style={styles.mainContent}>
-          <Text style={styles.mainHeading}>
-            Let's Get Rid of Your Skinny Body
-          </Text>
-          <Text style={styles.description}>
-            Transform Your Physique and Achieve Your Fitness Goals with UniFit
-          </Text>
+          <Animated.View entering={FadeInDown.delay(100).springify()}>
+            <Text style={styles.mainHeading}>
+              Let's Get Rid of Your Skinny Body
+            </Text>
+          </Animated.View>
+          <Animated.View entering={FadeInDown.delay(200).springify()}>
+            <Text style={styles.description}>
+              Transform Your Physique and Achieve Your Fitness Goals with UniFit
+            </Text>
+          </Animated.View>
 
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => navigation.navigate("login")}
+          <Animated.View entering={FadeInDown.delay(300).springify()}>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => navigation.navigate("login")}
+            >
+              <Text style={styles.primaryButtonText}>Get Started</Text>
+            </TouchableOpacity>
+          </Animated.View>
+          <Animated.View
+            entering={FadeInDown.delay(400).springify()}
+            style={styles.registerContainer}
           >
-            <Text style={styles.primaryButtonText}>Get Started</Text>
-          </TouchableOpacity>
-
-          <View style={styles.registerContainer}>
             <Text style={styles.registerText}>Don't have an account?</Text>
             <TouchableOpacity onPress={() => navigation.navigate("signup")}>
               <Text style={styles.registerButtonText}>Sign Up</Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         </View>
       </View>
+      <StatusBar backgroundColor="rgba(10,10,10,0.7)" style="light" />
     </ImageBackground>
   );
 }

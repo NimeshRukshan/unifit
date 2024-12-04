@@ -14,6 +14,8 @@ import { RootStackParamList } from "@/navigation/types";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase.config"; // Ensure firebase config is properly initialized
 import Toast from "react-native-toast-message"; // Import Toast for feedback
+import { StatusBar } from "expo-status-bar";
+import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
 
 export default function Login() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -71,67 +73,118 @@ export default function Login() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Login</Text>
-      <TextInput
-        style={[
-          styles.input,
-          focusedField === "email" && { borderColor: theme.colors.secondary },
-        ]}
-        placeholder="Email"
-        placeholderTextColor={theme.colors.textSecondary}
-        value={email}
-        onChangeText={setEmail}
-        onFocus={() => setFocusedField("email")}
-        onBlur={() => setFocusedField(null)}
-      />
-      <View style={styles.passwordContainer}>
+    <Animated.View
+      entering={FadeInDown.delay(100).springify()}
+      style={styles.container}
+    >
+      <Animated.View entering={FadeInDown.delay(150).springify()}>
+        <Text style={styles.header}>Login</Text>
+      </Animated.View>
+      <Animated.View
+        entering={FadeInDown.delay(200).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <TextInput
           style={[
             styles.input,
-            focusedField === "password" && {
-              borderColor: theme.colors.secondary,
-            },
-            { width: "100%" },
+            focusedField === "email" && { borderColor: theme.colors.secondary },
           ]}
-          placeholder="Password"
+          placeholder="Email"
           placeholderTextColor={theme.colors.textSecondary}
-          secureTextEntry={!showPassword} // Toggle password visibility
-          value={password}
-          onChangeText={setPassword}
-          onFocus={() => setFocusedField("password")}
+          value={email}
+          onChangeText={setEmail}
+          onFocus={() => setFocusedField("email")}
           onBlur={() => setFocusedField(null)}
         />
-        <TouchableOpacity
-          onPress={() => setShowPassword(!showPassword)}
-          style={styles.eyeIcon}
-        >
-          <Icon
-            name={showPassword ? "eye-slash" : "eye"}
-            size={24}
-            color={theme.colors.textSecondary}
+      </Animated.View>
+      <Animated.View
+        entering={FadeInDown.delay(250).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[
+              styles.input,
+              focusedField === "password" && {
+                borderColor: theme.colors.secondary,
+              },
+              { width: "100%" },
+            ]}
+            placeholder="Password"
+            placeholderTextColor={theme.colors.textSecondary}
+            secureTextEntry={!showPassword} // Toggle password visibility
+            value={password}
+            onChangeText={setPassword}
+            onFocus={() => setFocusedField("password")}
+            onBlur={() => setFocusedField(null)}
           />
+          <TouchableOpacity
+            onPress={() => setShowPassword(!showPassword)}
+            style={styles.eyeIcon}
+          >
+            <Icon
+              name={showPassword ? "eye-slash" : "eye"}
+              size={24}
+              color={theme.colors.textSecondary}
+            />
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+      <Animated.View
+        entering={FadeInDown.delay(300).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => navigation.navigate("forgotPassword")}>
-        <Text style={styles.forgotPassword}>Forgot Password?</Text>
-      </TouchableOpacity>
-
-      <View style={styles.registerContainer}>
-        <Text style={styles.registerText}>Don't have an account?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("signup")}>
-          <Text style={styles.registerButtonText}>Sign Up</Text>
+      </Animated.View>
+      <Animated.View
+        entering={FadeInDown.delay(350).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <TouchableOpacity onPress={() => navigation.navigate("forgotPassword")}>
+          <Text style={styles.forgotPassword}>Forgot Password?</Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
+      <Animated.View
+        entering={FadeInDown.delay(400).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <View style={styles.registerContainer}>
+          <Text style={styles.registerText}>Don't have an account?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("signup")}>
+            <Text style={styles.registerButtonText}>Sign Up</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+      <TouchableOpacity onPress={() => navigation.navigate("index")}>
+        <Text style={styles.registerButtonText}>Home</Text>
+      </TouchableOpacity>
 
       {/* Toast Component */}
       <Toast />
-    </View>
+      <StatusBar backgroundColor="rgba(10,10,10,0.7)" style="light" />
+    </Animated.View>
   );
 }
 

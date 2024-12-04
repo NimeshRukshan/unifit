@@ -17,6 +17,8 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase.config";
 import Toast from "react-native-toast-message"; // Import toast
+import { StatusBar } from "expo-status-bar";
+import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
 
 export default function Signup() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -80,8 +82,23 @@ export default function Signup() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Sign Up</Text>
+    <Animated.View
+      entering={FadeInDown.delay(100).springify()}
+      style={[
+        styles.container,
+        { width: "100%", alignItems: "center", justifyContent: "center" },
+      ]}
+    >
+      <Animated.View
+        entering={FadeInDown.delay(150).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Text style={styles.header}>Sign Up</Text>
+      </Animated.View>
       <TextInput
         style={[
           styles.input,
@@ -96,77 +113,114 @@ export default function Signup() {
         onFocus={() => setFocusedField("userName")}
         onBlur={() => setFocusedField(null)}
       />
-      <TextInput
-        style={[
-          styles.input,
-          focusedField === "email" && { borderColor: theme.colors.secondary },
-        ]}
-        placeholder="Email"
-        placeholderTextColor={theme.colors.textSecondary}
-        value={email}
-        onChangeText={setEmail}
-        onFocus={() => setFocusedField("email")}
-        onBlur={() => setFocusedField(null)}
-      />
-      <View style={styles.passwordContainer}>
+      <Animated.View
+        entering={FadeInDown.delay(200).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <TextInput
           style={[
             styles.input,
-            focusedField === "password" && {
-              borderColor: theme.colors.secondary,
-            },
-            { width: "100%" },
+            focusedField === "email" && { borderColor: theme.colors.secondary },
           ]}
-          placeholder="Password"
+          placeholder="Email"
           placeholderTextColor={theme.colors.textSecondary}
-          secureTextEntry={!showPassword} // Toggle password visibility
-          value={password}
-          onChangeText={setPassword}
-          onFocus={() => setFocusedField("password")}
+          value={email}
+          onChangeText={setEmail}
+          onFocus={() => setFocusedField("email")}
           onBlur={() => setFocusedField(null)}
         />
-        <TouchableOpacity
-          onPress={() => setShowPassword(!showPassword)}
-          style={styles.eyeIcon}
-        >
-          <Icon
-            name={showPassword ? "eye-slash" : "eye"}
-            size={24}
-            color={theme.colors.textSecondary}
+      </Animated.View>
+      <Animated.View
+        entering={FadeInDown.delay(250).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[
+              styles.input,
+              focusedField === "password" && {
+                borderColor: theme.colors.secondary,
+              },
+              { width: "100%" },
+            ]}
+            placeholder="Password"
+            placeholderTextColor={theme.colors.textSecondary}
+            secureTextEntry={!showPassword} // Toggle password visibility
+            value={password}
+            onChangeText={setPassword}
+            onFocus={() => setFocusedField("password")}
+            onBlur={() => setFocusedField(null)}
           />
+          <TouchableOpacity
+            onPress={() => setShowPassword(!showPassword)}
+            style={styles.eyeIcon}
+          >
+            <Icon
+              name={showPassword ? "eye-slash" : "eye"}
+              size={24}
+              color={theme.colors.textSecondary}
+            />
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+      <Animated.View
+        entering={FadeInDown.delay(300).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[
+              styles.input,
+              focusedField === "confirmPassword" && {
+                borderColor: theme.colors.secondary,
+              },
+              { width: "100%" },
+            ]}
+            placeholder="Confirm Password"
+            placeholderTextColor={theme.colors.textSecondary}
+            secureTextEntry={!showPassword}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            onFocus={() => setFocusedField("confirmPassword")}
+            onBlur={() => setFocusedField(null)}
+          />
+        </View>
+      </Animated.View>
+      <Animated.View
+        entering={FadeInDown.delay(350).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <TouchableOpacity style={styles.button} onPress={handleSignup}>
+          <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
-      </View>
-      <View style={styles.passwordContainer}>
-        <TextInput
-          style={[
-            styles.input,
-            focusedField === "confirmPassword" && {
-              borderColor: theme.colors.secondary,
-            },
-            { width: "100%" },
-          ]}
-          placeholder="Confirm Password"
-          placeholderTextColor={theme.colors.textSecondary}
-          secureTextEntry={!showPassword}
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          onFocus={() => setFocusedField("confirmPassword")}
-          onBlur={() => setFocusedField(null)}
-        />
-      </View>
-      <TouchableOpacity style={styles.button} onPress={handleSignup}>
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </TouchableOpacity>
-      <View style={styles.otheAuth}>
-        <Text style={styles.otheAuthText}>Already have an account?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("login")}>
-          <Text style={styles.otheAuthButtonText}>Login</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.otheAuth}>
+          <Text style={styles.otheAuthText}>Already have an account?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("login")}>
+            <Text style={styles.otheAuthButtonText}>Login</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
 
       {/* Toast component */}
       <Toast />
-    </View>
+      <StatusBar backgroundColor="rgba(10,10,10,0.7)" style="light" />
+    </Animated.View>
   );
 }
 

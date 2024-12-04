@@ -13,6 +13,8 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "@/navigation/types";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../firebase.config";
+import { StatusBar } from "expo-status-bar";
+import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
 
 export default function ForgotPassword() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -71,29 +73,57 @@ export default function ForgotPassword() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Forgot Password</Text>
-      <TextInput
-        style={[
-          styles.input,
-          focusedField === "email" && { borderColor: theme.colors.secondary },
-        ]}
-        placeholder="Enter your email"
-        placeholderTextColor={theme.colors.textSecondary}
-        value={email}
-        onChangeText={setEmail}
-        onFocus={() => setFocusedField("email")}
-        onBlur={() => setFocusedField(null)}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-        <Text style={styles.buttonText}>Reset Password</Text>
-      </TouchableOpacity>
+      <Animated.View
+        entering={FadeInDown.delay(100).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Text style={styles.header}>Forgot Password</Text>
+      </Animated.View>
+      <Animated.View
+        entering={FadeInDown.delay(150).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <TextInput
+          style={[
+            styles.input,
+            focusedField === "email" && { borderColor: theme.colors.secondary },
+          ]}
+          placeholder="Enter your email"
+          placeholderTextColor={theme.colors.textSecondary}
+          value={email}
+          onChangeText={setEmail}
+          onFocus={() => setFocusedField("email")}
+          onBlur={() => setFocusedField(null)}
+        />
+      </Animated.View>
+      <Animated.View
+        entering={FadeInDown.delay(200).springify()}
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
+          <Text style={styles.buttonText}>Reset Password</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("login")}>
-        <Text style={styles.backToLogin}>Back to Login</Text>
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("login")}>
+          <Text style={styles.backToLogin}>Back to Login</Text>
+        </TouchableOpacity>
+      </Animated.View>
 
       {/* Toast Component */}
       <Toast />
+      <StatusBar backgroundColor="rgba(10,10,10,0.7)" style="light" />
     </View>
   );
 }
