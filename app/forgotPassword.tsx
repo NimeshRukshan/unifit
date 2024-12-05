@@ -7,7 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import Toast from "react-native-toast-message"; // Import Toast
-import theme from "../theme";
+import theme from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "@/navigation/types";

@@ -7,7 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
-import theme from "../theme";
+import theme from "../constants/theme"; // Assuming you have a theme file for consistent design
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "@/navigation/types";
@@ -15,16 +15,18 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase.config"; // Ensure firebase config is properly initialized
 import Toast from "react-native-toast-message"; // Import Toast for feedback
 import { StatusBar } from "expo-status-bar";
-import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 export default function Login() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [focusedField, setFocusedField] = useState<string | null>(null); // Track focused field
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // To handle loading state
 
+  // Handle Login logic
   const handleLogin = async () => {
     if (!email || !password) {
       Toast.show({
@@ -35,8 +37,9 @@ export default function Login() {
       return;
     }
 
+    setIsLoading(true); // Start loading
+
     try {
-      // Attempt login with email and password
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -44,31 +47,32 @@ export default function Login() {
       );
       const user = userCredential.user;
 
-      // Check if email is verified
       if (!user.emailVerified) {
         Toast.show({
           type: "error",
           text1: "Email Not Verified",
           text2: "Please verify your email before logging in.",
         });
+        setIsLoading(false);
         return;
       }
 
-      // Success: Navigate to the home screen
+      // Login success
       Toast.show({
         type: "success",
         text1: "Login Successful",
         text2: "Welcome back!",
       });
 
-      navigation.navigate("home"); // Replace with the screen you want to navigate to
+      navigation.navigate("home"); // Navigate to Home screen
     } catch (error: any) {
-      // Show error message
       Toast.show({
         type: "error",
         text1: "Login Error",
         text2: error.message,
       });
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
@@ -80,13 +84,11 @@ export default function Login() {
       <Animated.View entering={FadeInDown.delay(150).springify()}>
         <Text style={styles.header}>Login</Text>
       </Animated.View>
+
+      {/* Email Input */}
       <Animated.View
         entering={FadeInDown.delay(200).springify()}
-        style={{
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        style={styles.inputContainer}
       >
         <TextInput
           style={[
@@ -99,15 +101,14 @@ export default function Login() {
           onChangeText={setEmail}
           onFocus={() => setFocusedField("email")}
           onBlur={() => setFocusedField(null)}
+          autoFocus
         />
       </Animated.View>
+
+      {/* Password Input */}
       <Animated.View
         entering={FadeInDown.delay(250).springify()}
-        style={{
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        style={styles.inputContainer}
       >
         <View style={styles.passwordContainer}>
           <TextInput
@@ -116,11 +117,13 @@ export default function Login() {
               focusedField === "password" && {
                 borderColor: theme.colors.secondary,
               },
-              { width: "100%" },
+              {
+                width: "100%",
+              },
             ]}
             placeholder="Password"
             placeholderTextColor={theme.colors.textSecondary}
-            secureTextEntry={!showPassword} // Toggle password visibility
+            secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
             onFocus={() => setFocusedField("password")}
@@ -138,50 +141,49 @@ export default function Login() {
           </TouchableOpacity>
         </View>
       </Animated.View>
+
+      {/* Login Button */}
       <Animated.View
         entering={FadeInDown.delay(300).springify()}
-        style={{
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        style={styles.buttonContainer}
       >
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
+        <TouchableOpacity
+          style={[styles.button, isLoading && { opacity: 0.7 }]}
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>
+            {isLoading ? "Logging In..." : "Login"}
+          </Text>
         </TouchableOpacity>
       </Animated.View>
+
+      {/* Forgot Password Link */}
       <Animated.View
         entering={FadeInDown.delay(350).springify()}
-        style={{
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        style={styles.forgotPasswordContainer}
       >
         <TouchableOpacity onPress={() => navigation.navigate("forgotPassword")}>
           <Text style={styles.forgotPassword}>Forgot Password?</Text>
         </TouchableOpacity>
       </Animated.View>
+
+      {/* Sign Up Link */}
       <Animated.View
         entering={FadeInDown.delay(400).springify()}
-        style={{
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        style={styles.registerContainer}
       >
-        <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>Don't have an account?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("signup")}>
-            <Text style={styles.registerButtonText}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.registerText}>Don't have an account?</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("signup")}>
+          <Text style={styles.registerButtonText}>Sign Up</Text>
+        </TouchableOpacity>
       </Animated.View>
+
+      {/* Home Button */}
       <TouchableOpacity onPress={() => navigation.navigate("index")}>
         <Text style={styles.registerButtonText}>Home</Text>
       </TouchableOpacity>
 
-      {/* Toast Component */}
       <Toast />
       <StatusBar backgroundColor="rgba(10,10,10,0.7)" style="light" />
     </Animated.View>
@@ -202,6 +204,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: theme.spacing.large,
   },
+  inputContainer: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   input: {
     width: "80%",
     padding: theme.spacing.medium,
@@ -219,8 +226,13 @@ const styles = StyleSheet.create({
   eyeIcon: {
     position: "absolute",
     right: 10,
-    top: "20%",
+    top: "25%",
     zIndex: 1,
+  },
+  buttonContainer: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   button: {
     width: "80%",
@@ -233,6 +245,11 @@ const styles = StyleSheet.create({
   buttonText: {
     color: theme.colors.buttonText,
     fontWeight: "bold",
+  },
+  forgotPasswordContainer: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   forgotPassword: {
     color: theme.colors.secondary,

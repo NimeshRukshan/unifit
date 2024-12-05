@@ -9,7 +9,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../navigation/types";
-import theme from "../theme";
+import theme from "../constants/theme";
 import { StatusBar } from "expo-status-bar";
 import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
 

@@ -1,15 +1,23 @@
 import React from "react";
 import { Stack } from "expo-router";
 
-// You don't need NavigationContainer here, Expo Router takes care of that
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="home" options={{ headerShown: false }} />
-      <Stack.Screen name="signup" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ headerShown: false }} />
-      <Stack.Screen name="forgotPassword" options={{ headerShown: false }} />
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="index" />
+      <Stack.Screen name="home" />
+      <Stack.Screen name="signup" />
+      <Stack.Screen name="login" />
+      <Stack.Screen name="forgotPassword" />
+      <Stack.Screen name="onBoardingScreen" />
+      <Stack.Screen
+        name="planOverviewScreen"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }

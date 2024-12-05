@@ -7,18 +7,19 @@ import {
   StyleSheet,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
-import theme from "../theme";
+import theme from "../constants/theme"; // Assuming you have a theme file
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "@/navigation/types";
+import { RootStackParamList } from "@/navigation/types"; // Assuming you have navigation types
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
 } from "firebase/auth";
-import { auth } from "../firebase.config";
-import Toast from "react-native-toast-message"; // Import toast
+import { auth, db } from "../firebase.config";
+import { setDoc, doc } from "firebase/firestore";
+import Toast from "react-native-toast-message";
 import { StatusBar } from "expo-status-bar";
-import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 export default function Signup() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -31,8 +32,8 @@ export default function Signup() {
   });
   const { userName, email, password, confirmPassword } = user;
 
-  const [focusedField, setFocusedField] = useState<string | null>(null); // Track the focused field
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const setUserName = (userName: string) => setUser({ ...user, userName });
   const setEmail = (email: string) => setUser({ ...user, email });
@@ -58,6 +59,13 @@ export default function Signup() {
         password
       );
       const user = userCredential.user;
+
+      // Save user data to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        userName: userName,
+        email: email,
+        createdAt: new Date(),
+      });
 
       // Send email verification
       await sendEmailVerification(user);
@@ -89,16 +97,8 @@ export default function Signup() {
         { width: "100%", alignItems: "center", justifyContent: "center" },
       ]}
     >
-      <Animated.View
-        entering={FadeInDown.delay(150).springify()}
-        style={{
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Text style={styles.header}>Sign Up</Text>
-      </Animated.View>
+      <Text style={styles.header}>Sign Up</Text>
+
       <TextInput
         style={[
           styles.input,
@@ -113,111 +113,78 @@ export default function Signup() {
         onFocus={() => setFocusedField("userName")}
         onBlur={() => setFocusedField(null)}
       />
-      <Animated.View
-        entering={FadeInDown.delay(200).springify()}
-        style={{
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+
+      <TextInput
+        style={[
+          styles.input,
+          focusedField === "email" && { borderColor: theme.colors.secondary },
+        ]}
+        placeholder="Email"
+        placeholderTextColor={theme.colors.textSecondary}
+        value={email}
+        onChangeText={setEmail}
+        onFocus={() => setFocusedField("email")}
+        onBlur={() => setFocusedField(null)}
+      />
+
+      <View style={styles.passwordContainer}>
         <TextInput
           style={[
             styles.input,
-            focusedField === "email" && { borderColor: theme.colors.secondary },
+            focusedField === "password" && {
+              borderColor: theme.colors.secondary,
+            },
+            {
+              width: "100%",
+            },
           ]}
-          placeholder="Email"
+          placeholder="Password"
           placeholderTextColor={theme.colors.textSecondary}
-          value={email}
-          onChangeText={setEmail}
-          onFocus={() => setFocusedField("email")}
+          secureTextEntry={!showPassword}
+          value={password}
+          onChangeText={setPassword}
+          onFocus={() => setFocusedField("password")}
           onBlur={() => setFocusedField(null)}
         />
-      </Animated.View>
-      <Animated.View
-        entering={FadeInDown.delay(250).springify()}
-        style={{
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={[
-              styles.input,
-              focusedField === "password" && {
-                borderColor: theme.colors.secondary,
-              },
-              { width: "100%" },
-            ]}
-            placeholder="Password"
-            placeholderTextColor={theme.colors.textSecondary}
-            secureTextEntry={!showPassword} // Toggle password visibility
-            value={password}
-            onChangeText={setPassword}
-            onFocus={() => setFocusedField("password")}
-            onBlur={() => setFocusedField(null)}
+        <TouchableOpacity
+          onPress={() => setShowPassword(!showPassword)}
+          style={styles.eyeIcon}
+        >
+          <Icon
+            name={showPassword ? "eye-slash" : "eye"}
+            size={24}
+            color={theme.colors.textSecondary}
           />
-          <TouchableOpacity
-            onPress={() => setShowPassword(!showPassword)}
-            style={styles.eyeIcon}
-          >
-            <Icon
-              name={showPassword ? "eye-slash" : "eye"}
-              size={24}
-              color={theme.colors.textSecondary}
-            />
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-      <Animated.View
-        entering={FadeInDown.delay(300).springify()}
-        style={{
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={[
-              styles.input,
-              focusedField === "confirmPassword" && {
-                borderColor: theme.colors.secondary,
-              },
-              { width: "100%" },
-            ]}
-            placeholder="Confirm Password"
-            placeholderTextColor={theme.colors.textSecondary}
-            secureTextEntry={!showPassword}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            onFocus={() => setFocusedField("confirmPassword")}
-            onBlur={() => setFocusedField(null)}
-          />
-        </View>
-      </Animated.View>
-      <Animated.View
-        entering={FadeInDown.delay(350).springify()}
-        style={{
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <TouchableOpacity style={styles.button} onPress={handleSignup}>
-          <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
-        <View style={styles.otheAuth}>
-          <Text style={styles.otheAuthText}>Already have an account?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("login")}>
-            <Text style={styles.otheAuthButtonText}>Login</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
+      </View>
 
-      {/* Toast component */}
+      <TextInput
+        style={[
+          styles.input,
+          focusedField === "confirmPassword" && {
+            borderColor: theme.colors.secondary,
+          },
+        ]}
+        placeholder="Confirm Password"
+        placeholderTextColor={theme.colors.textSecondary}
+        secureTextEntry={!showPassword}
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        onFocus={() => setFocusedField("confirmPassword")}
+        onBlur={() => setFocusedField(null)}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={handleSignup}>
+        <Text style={styles.buttonText}>Sign Up</Text>
+      </TouchableOpacity>
+
+      <View style={styles.otheAuth}>
+        <Text style={styles.otheAuthText}>Already have an account?</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("login")}>
+          <Text style={styles.otheAuthButtonText}>Login</Text>
+        </TouchableOpacity>
+      </View>
+
       <Toast />
       <StatusBar backgroundColor="rgba(10,10,10,0.7)" style="light" />
     </Animated.View>

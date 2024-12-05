@@ -1,3 +1,5 @@
+import { Workout } from "@/data";
+
 // navigation/types.ts
 export type RootStackParamList = {
   home: undefined;
@@ -6,4 +8,6 @@ export type RootStackParamList = {
   forgotPassword: undefined;
   resetPassword: undefined;
   index: undefined;
+  planOverviewScreen: { workout: Workout };
+  onBoardingScreen: undefined;
 };
