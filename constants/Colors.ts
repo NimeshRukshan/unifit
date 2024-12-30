@@ -1,7 +1,7 @@
 const white = "#FFFFFF";
-const gray = "#504f4f";
+const gray = "#37373d";
 const black = "#121212";
-const dark = "#232222";
+const dark = "#1f1f1f";
 const green = "#ADF547";
 const yellow = "#F2E205";
 
