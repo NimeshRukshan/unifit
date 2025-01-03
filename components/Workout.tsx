@@ -1,73 +1,85 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from "react";
-import { Ionicons } from "@expo/vector-icons";
-import Font from "../constants/Font";
-import Spacing from "../constants/Spacing";
-import AppText from "./AppText";
+import { TouchableOpacity, Image, View, Text, StyleSheet } from "react-native";
 import Colors from "../constants/Colors";
-import { Workout as WorkoutType } from "../data";
+import Font from "../constants/Font";
+import FontSize from "../constants/FontSize";
+import Spacing from "../constants/Spacing";
 
-interface Props {
-  workout: WorkoutType;
-  onPress?: () => void;
+interface WorkoutProps {
+  workout: { id: number; name: string; category: number; image?: string };
+  onPress: () => void;
+  badgeCount?: number;
 }
 
-const Workout: React.FC<Props> = ({ workout, onPress }) => {
+const Workout: React.FC<WorkoutProps> = ({
+  workout,
+  onPress,
+  badgeCount = 0,
+}) => {
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={{
-        backgroundColor: Colors.primary,
-        marginRight: Spacing.margin.lg,
-        borderRadius: Spacing.borderRadius.base,
-        overflow: "hidden",
-      }}
-    >
+    <TouchableOpacity style={styles.container} onPress={onPress}>
       <Image
-        source={workout.image}
-        style={{
-          width: 270,
-          height: 200,
+        source={{
+          uri:
+            workout.image ||
+            "https://via.placeholder.com/270x200.png?text=Workout",
         }}
+        style={styles.image}
       />
-      <View
-        style={{
-          padding: Spacing.padding.base,
-        }}
-      >
-        <View
-          style={{
-            marginBottom: Spacing.margin.base,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <AppText
-            style={{
-              fontFamily: Font["poppins-semiBold"],
-            }}
-          >
-            {workout.name}
-          </AppText>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <Ionicons name='star' color={Colors.yellow} size={24} />
-            <AppText style={{ marginLeft: Spacing.margin.sm }}>
-              {workout.rating}
-            </AppText>
-          </View>
+      {badgeCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{badgeCount}</Text>
         </View>
-        <AppText>{workout.coach}</AppText>
+      )}
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>{workout.name}</Text>
+        <Text style={styles.category}>Category: {workout.category}</Text>
       </View>
     </TouchableOpacity>
   );
 };
 
-export default Workout;
+const styles = StyleSheet.create({
+  container: {
+    marginRight: Spacing.margin.lg,
+    position: "relative",
+    width: 270,
+  },
+  image: {
+    width: "100%",
+    height: 200,
+    borderRadius: Spacing.borderRadius.base,
+    backgroundColor: Colors.onAccent,
+  },
+  badge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: Colors.accent,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  badgeText: {
+    color: Colors.text,
+    fontSize: FontSize.xs,
+    fontWeight: "bold",
+  },
+  textContainer: {
+    marginTop: Spacing.margin.sm,
+  },
+  title: {
+    fontFamily: Font["poppins-semiBold"],
+    fontSize: FontSize.base,
+    color: Colors.text,
+  },
+  category: {
+    fontFamily: Font["poppins-regular"],
+    fontSize: FontSize.sm,
+    color: Colors.yellow,
+  },
+});
 
-const styles = StyleSheet.create({});
+export default Workout;

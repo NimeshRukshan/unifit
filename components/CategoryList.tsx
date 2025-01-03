@@ -1,32 +1,34 @@
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
 import React, { useState } from "react";
+import { ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import FontSize from "../constants/FontSize";
 import Spacing from "../constants/Spacing";
-import { categories } from "../data";
-import AppText from "./AppText";
 import Colors from "../constants/Colors";
+import AppText from "./AppText";
 
-const CategoryList: React.FC = () => {
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface CategoryListProps {
+  categories: Category[]; // Defining the prop type for categories
+}
+
+const CategoryList: React.FC<CategoryListProps> = ({ categories }) => {
   const [active, setActive] = useState<number>(0);
+
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
       {[{ id: 0, name: "All" }, ...categories].map((category) => (
         <TouchableOpacity
           onPress={() => setActive(category.id)}
-          style={{
-            paddingHorizontal: Spacing.padding.base,
-            paddingVertical: Spacing.padding.sm,
-            backgroundColor:
-              active === category.id ? Colors.accent : Colors.primary,
-            marginRight: Spacing.margin.base,
-            borderRadius: Spacing.borderRadius.base,
-          }}
+          style={[
+            styles.categoryButton,
+            {
+              backgroundColor:
+                active === category.id ? Colors.accent : Colors.primary,
+            },
+          ]}
           key={category.id}
         >
           <AppText
@@ -45,4 +47,11 @@ const CategoryList: React.FC = () => {
 
 export default CategoryList;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  categoryButton: {
+    paddingHorizontal: Spacing.padding.base,
+    paddingVertical: Spacing.padding.sm,
+    marginRight: Spacing.margin.base,
+    borderRadius: Spacing.borderRadius.base,
+  },
+});

@@ -5,8 +5,8 @@ interface User {
   profile: ImageSourcePropType;
 }
 export const user: User = {
-  name: "tugane",
-  profile: require("../assets/images/avatar.jpeg"),
+  name: "Rukshan Fernando",
+  profile: require("../assets/images/avatar.jpg"),
 };
 
 export interface Category {
@@ -48,21 +48,21 @@ export const exercises: Exercise[] = [
     name: "Squats",
     time: "30 sec",
     image: require("../assets/images/exercises/Squats.jpeg"),
-    set:2
+    set: 2,
   },
   {
     id: 2,
     name: "Pushup",
     time: "30 sec",
     image: require("../assets/images/exercises/Pushup.jpeg"),
-    set:2
+    set: 2,
   },
   {
     id: 3,
     name: "Jumping",
     time: "30 sec",
     image: require("../assets/images/exercises/Jumping.jpeg"),
-    set:2
+    set: 2,
   },
 ];
 

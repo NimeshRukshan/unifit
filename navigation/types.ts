@@ -8,6 +8,7 @@ export type RootStackParamList = {
   forgotPassword: undefined;
   resetPassword: undefined;
   index: undefined;
+  notifications: undefined;
   planOverviewScreen: { workout: Workout };
   onBoardingScreen: undefined;
 };

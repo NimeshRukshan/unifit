@@ -63,7 +63,7 @@ export default function OnBoardingScreen() {
           Staying fit to keep you in good condition can now go through mobile
           apps
         </Text>
-        <Button onPress={handlePress}>Get Started</Button>
+        {/* <Button onPress={handlePress}>Get Started</Button> */}
       </LinearGradient>
     </ImageBackground>
   );

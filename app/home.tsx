@@ -1,207 +1,448 @@
+import React, { useEffect, useState } from "react";
 import {
-  Image,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  Image,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types";
-import { categories, user, workoutPlans, workouts } from "../data";
+import axios from "axios";
 import Colors from "../constants/Colors";
-import Font from "../constants/Font";
-import FontSize from "../constants/FontSize";
-import AppText from "../components/AppText";
 import Spacing from "../constants/Spacing";
-import { Ionicons } from "@expo/vector-icons";
-import IconButton from "../components/IconButton";
-import CategoryList from "../components/CategoryList";
-import SectionHeader from "../components/SectionHeader";
-import Workout from "../components/Workout";
-import Rating from "react-native-easy-rating";
-import Screen from "../components/Screen";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import FontSize from "../constants/FontSize";
+import Font from "../constants/Font";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Home">;
+interface Exercise {
+  id: number;
+  name: string;
+  description: string;
+  image: string | null;
+  category: string;
+  showDescription: boolean;
+}
 
-export default function HomeScreen() {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+const HomeScreen = () => {
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [clickCounter, setClickCounter] = useState<number>(0);
+
+  const exercisesPerPage = 10;
+
+  const HARD_CODED_CATEGORIES: string[] = [
+    "Cardio",
+    "Strength",
+    "Flexibility",
+    "Balance",
+    "Endurance",
+    "HIIT",
+    "Yoga",
+    "Pilates",
+  ];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [exerciseResponse, imageResponse] = await Promise.all([
+          axios.get("https://wger.de/api/v2/exercise/?status=2&language=2"),
+          axios.get("https://wger.de/api/v2/exerciseimage/?is_main=True"),
+        ]);
+        console.log("exerciseResponse", exerciseResponse.data);
+        console.log("imageResponse", imageResponse.data);
+
+        const imageMap = new Map<number, string>();
+        imageResponse.data.results.forEach((image: any) => {
+          if (image.exercise && image.image) {
+            const imageUrl = `https://wger.de${image.image}`;
+            imageMap.set(image.exercise, imageUrl);
+          }
+        });
+
+        const exercisesWithImages = exerciseResponse.data.results.map(
+          (exercise: any) => {
+            const image = imageMap.get(exercise.id) || null;
+            return {
+              id: exercise.id,
+              name: exercise.name,
+              description: exercise.description,
+              image: image,
+              category: exercise.category?.name || "Uncategorized",
+              showDescription: false,
+            };
+          }
+        );
+
+        setExercises(exercisesWithImages);
+        setCategories(HARD_CODED_CATEGORIES);
+      } catch (error) {
+        console.error("Error fetching exercises or images:", error);
+        setErrorMessage("Failed to load exercises. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const toggleDescription = (id: number) => {
+    setExercises((prevExercises) =>
+      prevExercises.map((exercise) =>
+        exercise.id === id
+          ? { ...exercise, showDescription: !exercise.showDescription }
+          : exercise
+      )
+    );
+
+    setClickCounter((prevCount) => prevCount + 1);
+  };
+
+  const handleCategorySelect = (category: string | null) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  };
+
+  const filteredExercises = exercises.filter((ex) => {
+    const matchesCategory =
+      selectedCategory === null || ex.category === selectedCategory;
+    const matchesSearch =
+      ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ex.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const currentExercises = filteredExercises.slice(
+    (currentPage - 1) * exercisesPerPage,
+    currentPage * exercisesPerPage
+  );
+
+  const handleNextPage = () => {
+    if (currentPage * exercisesPerPage < filteredExercises.length) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.accent} />
+      </View>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{errorMessage}</Text>
+      </View>
+    );
+  }
+
   return (
-    <Screen>
-      <ScrollView
-        style={{
-          paddingHorizontal: Spacing.padding.base,
-          backgroundColor: Colors.background,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <Image
-              source={user.profile}
-              style={{
-                height: 50,
-                width: 50,
-                borderRadius: 25,
-              }}
-            />
-            <View
-              style={{
-                marginLeft: Spacing.margin.base,
-              }}
-            >
-              <AppText>Hello, Welcome</AppText>
-              <AppText
-                style={{
-                  fontFamily: Font["poppins-semiBold"],
-                  textTransform: "capitalize",
-                }}
-              >
-                {user.name}
-              </AppText>
-            </View>
-          </View>
-          <IconButton name="notifications" />
-        </View>
+    <View style={styles.container}>
+      <View style={styles.profileContainer}>
+        <Image
+          source={require("../assets/images/avatar.jpg")}
+          style={styles.profileImage}
+        />
+        <Text style={styles.welcomeText}>Hello, Rukshan Fernando</Text>
+      </View>
 
-        <View
-          style={{
-            backgroundColor: Colors.primary,
-            paddingVertical: Spacing.padding.sm,
-            paddingHorizontal: Spacing.padding.base,
-            borderRadius: Spacing.borderRadius.base,
-            marginVertical: Spacing.margin.xl,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Ionicons name="search-outline" size={24} color={Colors.text} />
-          <TextInput
-            placeholder="Search Workouts.."
-            placeholderTextColor={Colors.text}
-            style={{
-              fontSize: FontSize.base,
-              width: "80%",
-            }}
-          />
-          <IconButton
-            name="options-outline"
-            style={{
-              backgroundColor: Colors.accent,
-            }}
-            color={Colors.black}
-          />
-        </View>
-        <CategoryList />
-        <SectionHeader title="Featured Workouts" />
+      <View style={styles.searchBarContainer}>
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search exercises..."
+          value={searchQuery}
+          onChangeText={handleSearch}
+        />
+      </View>
+
+      <View style={styles.categoriesWrapper}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          pagingEnabled
-          snapToInterval={270 + Spacing.margin.lg}
+          contentContainerStyle={styles.categoriesContentContainer}
         >
-          {workouts.map((workout) => (
-            <Workout
-              onPress={() =>
-                navigation.navigate("PlanOverview", { workout: workout })
-              }
-              workout={workout}
-              key={workout.id}
-            />
+          <TouchableOpacity
+            style={[
+              styles.categoryButton,
+              selectedCategory === null && styles.activeCategory,
+            ]}
+            onPress={() => handleCategorySelect(null)}
+            accessibilityLabel="Select All Categories"
+            accessibilityRole="button"
+          >
+            <Text style={styles.categoryText}>All</Text>
+          </TouchableOpacity>
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category}
+              style={[
+                styles.categoryButton,
+                selectedCategory === category && styles.activeCategory,
+              ]}
+              onPress={() => handleCategorySelect(category)}
+              accessibilityLabel={`Select ${category} Category`}
+              accessibilityRole="button"
+            >
+              <Text style={styles.categoryText}>{category}</Text>
+            </TouchableOpacity>
           ))}
         </ScrollView>
-        <SectionHeader title="Trending Plans" />
-        {workoutPlans.map((plan) => (
-          <TouchableOpacity
-            style={{
-              padding: Spacing.padding.sm,
-              marginBottom: Spacing.margin.base,
-              backgroundColor: Colors.primary,
-              borderRadius: Spacing.borderRadius.base,
-              flexDirection: "row",
-            }}
-            key={plan.id}
-          >
-            <Image
-              source={plan.image}
-              style={{
-                width: 100,
-                height: 100,
-                borderRadius: Spacing.borderRadius.base,
-              }}
-            />
-            <View
-              style={{
-                marginLeft: Spacing.margin.base,
-                justifyContent: "space-between",
-              }}
+      </View>
+
+      <View style={styles.exercisesWrapper}>
+        <ScrollView contentContainerStyle={styles.exercisesContainer}>
+          {currentExercises.map((exercise) => (
+            <TouchableOpacity
+              key={exercise.id}
+              style={styles.card}
+              onPress={() => toggleDescription(exercise.id)}
+              activeOpacity={0.8}
+              accessibilityLabel={`Exercise: ${exercise.name}`}
+              accessibilityRole="button"
             >
-              <AppText
-                style={{
-                  fontFamily: Font["poppins-semiBold"],
-                }}
-              >
-                {plan.name}
-              </AppText>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
-                <Ionicons
-                  name="calendar-outline"
-                  size={16}
-                  color={Colors.text}
-                />
-                <AppText
-                  style={{
-                    marginLeft: Spacing.margin.base,
-                  }}
-                >
-                  {plan.duration} | {plan.location}
-                </AppText>
+              {exercise.image ? (
+                <Image source={{ uri: exercise.image }} style={styles.image} />
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <Text style={styles.placeholderText}>No Image</Text>
+                </View>
+              )}
+              <View style={styles.textContainer}>
+                <Text style={styles.title}>{exercise.name}</Text>
+                {exercise.showDescription && (
+                  <Text style={styles.description}>{exercise.description}</Text>
+                )}
+                <Text style={styles.readMoreText}>
+                  {exercise.showDescription ? "Read Less" : "Read More"}
+                </Text>
               </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
-                <Rating
-                  rating={plan.rating}
-                  max={5}
-                  iconWidth={20}
-                  iconHeight={20}
-                />
-                <AppText
-                  style={{
-                    marginLeft: Spacing.margin.sm,
-                  }}
-                >
-                  {plan.rating}
-                </AppText>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </Screen>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      <View style={styles.pagination}>
+        <TouchableOpacity
+          style={[
+            styles.paginationButton,
+            currentPage === 1 && styles.disabledButton,
+          ]}
+          onPress={handlePreviousPage}
+          disabled={currentPage === 1}
+          accessibilityLabel="Go to Previous Page"
+          accessibilityRole="button"
+        >
+          <Text style={styles.paginationText}>Previous</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.paginationButton,
+            currentPage * exercisesPerPage >= filteredExercises.length &&
+              styles.disabledButton,
+          ]}
+          onPress={handleNextPage}
+          disabled={currentPage * exercisesPerPage >= filteredExercises.length}
+          accessibilityLabel="Go to Next Page"
+          accessibilityRole="button"
+        >
+          <Text style={styles.paginationText}>Next</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.counterCircle}>
+        <Text style={styles.counterText}>{clickCounter}</Text>
+      </View>
+    </View>
   );
-}
+};
+
+export default HomeScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    padding: Spacing.padding.base,
+  },
+  profileContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.padding.base,
+  },
+  welcomeText: {
+    fontSize: FontSize.lg,
+    fontFamily: Font["poppins-semiBold"],
+    color: Colors.text,
+  },
+  categoryButton: {
+    padding: Spacing.padding.sm,
+    borderRadius: Spacing.borderRadius.base,
+    backgroundColor: Colors.primary,
+    marginRight: Spacing.margin.sm,
+  },
+  activeCategory: {
+    backgroundColor: Colors.accent,
+  },
+  categoryText: {
+    color: Colors.text,
+    fontSize: FontSize.sm,
+    fontFamily: Font["poppins-regular"],
+  },
+  categoriesWrapper: {
+    marginBottom: 20,
+  },
+  categoriesContentContainer: {
+    paddingLeft: 10,
+    paddingRight: 10,
+  },
+  exercisesWrapper: {
+    flex: 1,
+  },
+  exercisesContainer: {
+    paddingBottom: 100,
+    paddingTop: 20,
+  },
+  card: {
+    backgroundColor: Colors.primary,
+    borderRadius: Spacing.borderRadius.base,
+    marginBottom: Spacing.margin.base,
+    overflow: "hidden",
+    shadowColor: Colors.border,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  image: {
+    width: "100%",
+    height: 150,
+  },
+  imagePlaceholder: {
+    width: "100%",
+    height: 150,
+    backgroundColor: Colors.border,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  placeholderText: {
+    color: Colors.text,
+    fontSize: FontSize.sm,
+  },
+  textContainer: {
+    padding: Spacing.padding.base,
+  },
+  title: {
+    fontSize: FontSize.base,
+    fontFamily: Font["poppins-bold"],
+    color: Colors.text,
+    marginBottom: Spacing.margin.sm,
+  },
+  description: {
+    fontSize: FontSize.sm,
+    fontFamily: Font["poppins-regular"],
+    color: Colors.textSecondary,
+  },
+  readMoreText: {
+    color: Colors.accent,
+    fontFamily: Font["poppins-bold"],
+    marginTop: 10,
+  },
+  pagination: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    paddingBottom: Spacing.padding.base,
+    marginTop: 20,
+  },
+  paginationButton: {
+    padding: Spacing.padding.sm,
+    backgroundColor: Colors.accent,
+    borderRadius: Spacing.borderRadius.base,
+  },
+  disabledButton: {
+    backgroundColor: Colors.border,
+  },
+  paginationText: {
+    color: Colors.onAccent,
+    fontFamily: Font["poppins-bold"],
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 15,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  searchBarContainer: {
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  searchBar: {
+    height: 40,
+    borderColor: Colors.border,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    backgroundColor: Colors.primary,
+    color: Colors.text,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: FontSize.sm,
+    fontFamily: Font["poppins-regular"],
+  },
+  counterCircle: {
+    position: "absolute",
+    top: 30,
+    right: 30,
+    width: 50,
+    height: 50,
+    borderRadius: 30,
+    backgroundColor: Colors.accent,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  counterText: {
+    color: Colors.black,
+    fontSize: 20,
+    fontFamily: Font["poppins-bold"],
+  },
+});

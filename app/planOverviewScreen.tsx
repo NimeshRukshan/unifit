@@ -1,46 +1,53 @@
+import React from "react";
 import {
+  ScrollView,
+  View,
   Image,
   ImageBackground,
   Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
   TouchableOpacity,
-  View,
+  ImageSourcePropType,
 } from "react-native";
-import React from "react";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList, RootStackScreenProps } from "../types";
 import AppText from "../components/AppText";
 import IconButton from "../components/IconButton";
 import Spacing from "../constants/Spacing";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types";
-import { BlurView } from "expo-blur";
 import Font from "../constants/Font";
 import Colors from "../constants/Colors";
 import FontSize from "../constants/FontSize";
+import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Button from "../components/Button";
 import Screen from "../components/Screen";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
 
-type Props = NativeStackScreenProps<RootStackParamList, "PlanOverview">;
+// Type props for navigation
+type Props = RootStackScreenProps<"PlanOverview">;
 
-const PlanOverviewScreen: React.FC<Props> = ({
-  route,
-  navigation: { goBack },
-}) => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const workout = route.params.workout;
+type Workout = {
+  image: ImageSourcePropType;
+  minutes: number;
+  calories: number;
+  exercises: {
+    id: string;
+    image: ImageSourcePropType;
+    name: string;
+    time: string;
+    set: string;
+  }[];
+  name: string;
+  rating: number;
+  coach: string;
+  description: string;
+};
+
+const PlanOverviewScreen: React.FC<Props> = ({ route, navigation }) => {
+  const { workout } = route.params;
+
   return (
     <Screen>
-      <ScrollView
-        style={{
-          paddingHorizontal: Spacing.padding.base,
-        }}
-      >
+      <ScrollView style={{ paddingHorizontal: Spacing.padding.base }}>
         <View
           style={{
             alignItems: "center",
@@ -49,7 +56,7 @@ const PlanOverviewScreen: React.FC<Props> = ({
           }}
         >
           <IconButton
-            onPress={() => goBack()}
+            onPress={() => navigation.goBack()}
             style={{
               position: "absolute",
               left: 0,
@@ -99,12 +106,7 @@ const PlanOverviewScreen: React.FC<Props> = ({
                 justifyContent: "space-between",
               }}
             >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <AppText
                   style={{
                     fontFamily: Font["poppins-semiBold"],
@@ -114,20 +116,9 @@ const PlanOverviewScreen: React.FC<Props> = ({
                 >
                   {workout.minutes}
                 </AppText>
-                <AppText
-                  style={{
-                    fontSize: FontSize.sm,
-                  }}
-                >
-                  minutes
-                </AppText>
+                <AppText style={{ fontSize: FontSize.sm }}>minutes</AppText>
               </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <AppText
                   style={{
                     fontFamily: Font["poppins-semiBold"],
@@ -137,20 +128,9 @@ const PlanOverviewScreen: React.FC<Props> = ({
                 >
                   {workout.calories}
                 </AppText>
-                <AppText
-                  style={{
-                    fontSize: FontSize.sm,
-                  }}
-                >
-                  calories
-                </AppText>
+                <AppText style={{ fontSize: FontSize.sm }}>calories</AppText>
               </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <AppText
                   style={{
                     fontFamily: Font["poppins-semiBold"],
@@ -160,13 +140,7 @@ const PlanOverviewScreen: React.FC<Props> = ({
                 >
                   {workout.exercises.length}
                 </AppText>
-                <AppText
-                  style={{
-                    fontSize: FontSize.sm,
-                  }}
-                >
-                  exercises
-                </AppText>
+                <AppText style={{ fontSize: FontSize.sm }}>exercises</AppText>
               </View>
             </BlurView>
           </View>
@@ -186,12 +160,7 @@ const PlanOverviewScreen: React.FC<Props> = ({
           >
             {workout.name}
           </AppText>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Ionicons name="star" size={20} color={Colors.yellow} />
             <AppText
               style={{
@@ -235,73 +204,74 @@ const PlanOverviewScreen: React.FC<Props> = ({
           Exercises ({workout.exercises.length})
         </AppText>
 
-        {workout.exercises.map((exercise) => (
-          <TouchableOpacity
-            style={{
-              backgroundColor: Colors.primary,
-              borderRadius: Spacing.borderRadius.base,
-              marginBottom: Spacing.margin.lg,
-              padding: Spacing.padding.base,
-              flexDirection: "row",
-            }}
-            key={exercise.id}
-          >
-            <Image
-              source={exercise.image}
-              style={{
-                width: 100,
-                height: 100,
-                borderRadius: Spacing.borderRadius.base,
-              }}
-            />
-            <View
-              style={{
-                marginLeft: Spacing.margin.base,
-                justifyContent: "space-between",
-              }}
-            >
-              <AppText
-                style={{
-                  fontFamily: Font["poppins-semiBold"],
-                }}
-              >
-                {exercise.name}
-              </AppText>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
-                <Ionicons name="time-outline" size={16} color={Colors.text} />
-                <AppText
-                  style={{
-                    fontFamily: Font["poppins-regular"],
-                    marginLeft: Spacing.margin.sm,
-                  }}
+        {workout.exercises.map(
+          (exercise: {
+            id: React.Key | null | undefined;
+            image: ImageSourcePropType | undefined;
+            name:
+              | string
+              | number
+              | boolean
+              | React.ReactElement<
+                  any,
+                  string | React.JSXElementConstructor<any>
                 >
+              | Iterable<React.ReactNode>
+              | React.ReactPortal
+              | null
+              | undefined;
+            time:
+              | string
+              | number
+              | boolean
+              | React.ReactElement<
+                  any,
+                  string | React.JSXElementConstructor<any>
+                >
+              | Iterable<React.ReactNode>
+              | React.ReactPortal
+              | null
+              | undefined;
+            set:
+              | string
+              | number
+              | boolean
+              | React.ReactElement<
+                  any,
+                  string | React.JSXElementConstructor<any>
+                >
+              | Iterable<React.ReactNode>
+              | React.ReactPortal
+              | null
+              | undefined;
+          }) => (
+            <TouchableOpacity
+              style={{
+                backgroundColor: Colors.primary,
+                borderRadius: Spacing.borderRadius.base,
+                marginBottom: Spacing.margin.lg,
+                padding: Spacing.padding.base,
+                flexDirection: "row",
+              }}
+              key={exercise.id}
+            >
+              <Image
+                source={exercise.image}
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: Spacing.borderRadius.base,
+                }}
+              />
+              <View style={{ marginLeft: Spacing.margin.base }}>
+                <AppText>{exercise.name}</AppText>
+                <AppText>
                   {exercise.time} / {exercise.set} set
                 </AppText>
               </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
-                <Ionicons name="play" size={16} color={Colors.accent} />
-                <AppText
-                  style={{
-                    fontFamily: Font["poppins-regular"],
-                    marginLeft: Spacing.margin.sm,
-                  }}
-                >
-                  Play
-                </AppText>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          )
+        )}
       </ScrollView>
       <LinearGradient
         style={{
@@ -321,5 +291,3 @@ const PlanOverviewScreen: React.FC<Props> = ({
 };
 
 export default PlanOverviewScreen;
-
-const styles = StyleSheet.create({});

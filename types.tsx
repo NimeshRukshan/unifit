@@ -14,8 +14,10 @@ declare global {
 
 export type RootStackParamList = {
   Home: undefined;
-  PlanOverview: { workout: Workout };
-  OnBoarding: undefined;
+  // PlanOverview: { workout: Workout };
+  // OnBoarding: undefined;
+  Login: undefined;
+  Notifications: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

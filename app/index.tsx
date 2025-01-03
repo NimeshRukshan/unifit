@@ -46,14 +46,13 @@ export default function Index() {
             </Text>
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(300).springify()}>
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => navigation.navigate("login")}
-            >
-              <Text style={styles.primaryButtonText}>Get Started</Text>
-            </TouchableOpacity>
-          </Animated.View>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => navigation.navigate("login")}
+          >
+            <Text style={styles.primaryButtonText}>Get Started</Text>
+          </TouchableOpacity>
+
           <Animated.View
             entering={FadeInDown.delay(400).springify()}
             style={styles.registerContainer}
@@ -120,7 +119,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: theme.borderRadius.large,
     marginBottom: 20,
-    width: "90%",
+    width: "80%",
   },
   primaryButtonText: {
     color: theme.colors.buttonText,

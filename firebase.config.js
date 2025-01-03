@@ -6,8 +6,8 @@ const firebaseConfig = {
   apiKey: "AIzaSyAWFAg7KTP-sCrEL1sIA9K9cPTrKRRQsIs",
   authDomain: "unifit-2f6a8.firebaseapp.com",
   projectId: "unifit-2f6a8",
-  storageBucket: "unifit-2f6a8.appspot.com", // Corrected storageBucket
-  messagingSenderId: 201018361015, // Corrected messagingSenderId
+  storageBucket: "unifit-2f6a8.appspot.com",
+  messagingSenderId: 201018361015,
   appId: "1:201018361015:web:8338f5c6ebf4fda92f7932",
   measurementId: "G-R4WJ4NHKR0",
 };
