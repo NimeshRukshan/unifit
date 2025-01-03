@@ -8,6 +8,8 @@ import {
   Image,
   TextInput,
   ActivityIndicator,
+  FlatList,
+  Animated,
 } from "react-native";
 import axios from "axios";
 import Colors from "../constants/Colors";
@@ -33,6 +35,7 @@ const HomeScreen = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [clickCounter, setClickCounter] = useState<number>(0);
+  const [scaleValue] = useState(new Animated.Value(1));
 
   const exercisesPerPage = 10;
 
@@ -50,13 +53,30 @@ const HomeScreen = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [exerciseResponse, imageResponse] = await Promise.all([
-          axios.get("https://wger.de/api/v2/exercise/?status=2&language=2"),
-          axios.get("https://wger.de/api/v2/exerciseimage/?is_main=True"),
-        ]);
-        console.log("exerciseResponse", exerciseResponse.data);
-        console.log("imageResponse", imageResponse.data);
+        // Fetch Exercises
+        const exerciseResponse = await axios.get(
+          "https://wger.de/api/v2/exercise/",
+          {
+            params: {
+              status: 2,
+              language: 2,
+              limit: 1000,
+            },
+          }
+        );
 
+        // Fetch Exercise Images
+        const imageResponse = await axios.get(
+          "https://wger.de/api/v2/exerciseimage/",
+          {
+            params: {
+              is_main: true,
+              limit: 1000,
+            },
+          }
+        );
+
+        // Map Exercise Images to Exercise IDs
         const imageMap = new Map<number, string>();
         imageResponse.data.results.forEach((image: any) => {
           if (image.exercise && image.image) {
@@ -65,15 +85,17 @@ const HomeScreen = () => {
           }
         });
 
+        // Combine Exercises with Their Images
         const exercisesWithImages = exerciseResponse.data.results.map(
           (exercise: any) => {
             const image = imageMap.get(exercise.id) || null;
+            const categoryName = exercise.category?.name || "Uncategorized";
             return {
               id: exercise.id,
               name: exercise.name,
-              description: exercise.description,
+              description: exercise.description.replace(/(<([^>]+)>)/gi, ""),
               image: image,
-              category: exercise.category?.name || "Uncategorized",
+              category: categoryName,
               showDescription: false,
             };
           }
@@ -91,6 +113,21 @@ const HomeScreen = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.timing(scaleValue, {
+        toValue: 1.2,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleValue, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [clickCounter]);
 
   const toggleDescription = (id: number) => {
     setExercises((prevExercises) =>
@@ -210,35 +247,38 @@ const HomeScreen = () => {
       </View>
 
       <View style={styles.exercisesWrapper}>
-        <ScrollView contentContainerStyle={styles.exercisesContainer}>
-          {currentExercises.map((exercise) => (
+        <FlatList
+          data={currentExercises}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
             <TouchableOpacity
-              key={exercise.id}
+              key={item.id}
               style={styles.card}
-              onPress={() => toggleDescription(exercise.id)}
+              onPress={() => toggleDescription(item.id)}
               activeOpacity={0.8}
-              accessibilityLabel={`Exercise: ${exercise.name}`}
+              accessibilityLabel={`Exercise: ${item.name}`}
               accessibilityRole="button"
             >
-              {exercise.image ? (
-                <Image source={{ uri: exercise.image }} style={styles.image} />
+              {item.image ? (
+                <Image source={{ uri: item.image }} style={styles.image} />
               ) : (
                 <View style={styles.imagePlaceholder}>
                   <Text style={styles.placeholderText}>No Image</Text>
                 </View>
               )}
               <View style={styles.textContainer}>
-                <Text style={styles.title}>{exercise.name}</Text>
-                {exercise.showDescription && (
-                  <Text style={styles.description}>{exercise.description}</Text>
+                <Text style={styles.title}>{item.name}</Text>
+                {item.showDescription && (
+                  <Text style={styles.description}>{item.description}</Text>
                 )}
                 <Text style={styles.readMoreText}>
-                  {exercise.showDescription ? "Read Less" : "Read More"}
+                  {item.showDescription ? "Read Less" : "Read More"}
                 </Text>
               </View>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+          )}
+          contentContainerStyle={styles.exercisesContainer}
+        />
       </View>
 
       <View style={styles.pagination}>
@@ -269,9 +309,11 @@ const HomeScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.counterCircle}>
+      <Animated.View
+        style={[styles.counterCircle, { transform: [{ scale: scaleValue }] }]}
+      >
         <Text style={styles.counterText}>{clickCounter}</Text>
-      </View>
+      </Animated.View>
     </View>
   );
 };
@@ -426,10 +468,10 @@ const styles = StyleSheet.create({
   },
   counterCircle: {
     position: "absolute",
-    top: 30,
-    right: 30,
-    width: 50,
-    height: 50,
+    bottom: 30,
+    right: 10,
+    width: 60,
+    height: 60,
     borderRadius: 30,
     backgroundColor: Colors.accent,
     justifyContent: "center",
@@ -441,7 +483,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   counterText: {
-    color: Colors.black,
+    color: Colors.border,
     fontSize: 20,
     fontFamily: Font["poppins-bold"],
   },
