@@ -18,10 +18,10 @@ import FontSize from "../constants/FontSize";
 import Font from "../constants/Font";
 
 interface Exercise {
-  id: number;
+  id: string;
   name: string;
   description: string;
-  image: string | null;
+  image: string;
   category: string;
   showDescription: boolean;
 }
@@ -39,79 +39,50 @@ const HomeScreen = () => {
 
   const exercisesPerPage = 10;
 
-  const HARD_CODED_CATEGORIES: string[] = [
-    "Cardio",
-    "Strength",
-    "Flexibility",
-    "Balance",
-    "Endurance",
-    "HIIT",
-    "Yoga",
-    "Pilates",
-  ];
-
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchExercises = async () => {
       try {
-        // Fetch Exercises
-        const exerciseResponse = await axios.get(
-          "https://wger.de/api/v2/exercise/",
-          {
-            params: {
-              status: 2,
-              language: 2,
-              limit: 1000,
-            },
-          }
-        );
+        setIsLoading(true);
 
-        // Fetch Exercise Images
-        const imageResponse = await axios.get(
-          "https://wger.de/api/v2/exerciseimage/",
-          {
-            params: {
-              is_main: true,
-              limit: 1000,
-            },
-          }
-        );
+        const options = {
+          method: "GET",
+          url: "https://exercisedb.p.rapidapi.com/exercises",
+          headers: {
+            "X-RapidAPI-Key":
+              "f24c0d3101msh8f4ef0938245f83p11a4b7jsn8ab7c7518292",
+            "X-RapidAPI-Host": "exercisedb.p.rapidapi.com",
+          },
+        };
 
-        // Map Exercise Images to Exercise IDs
-        const imageMap = new Map<number, string>();
-        imageResponse.data.results.forEach((image: any) => {
-          if (image.exercise && image.image) {
-            const imageUrl = `https://wger.de${image.image}`;
-            imageMap.set(image.exercise, imageUrl);
-          }
-        });
+        const response = await axios.request(options);
 
-        // Combine Exercises with Their Images
-        const exercisesWithImages = exerciseResponse.data.results.map(
-          (exercise: any) => {
-            const image = imageMap.get(exercise.id) || null;
-            const categoryName = exercise.category?.name || "Uncategorized";
-            return {
-              id: exercise.id,
-              name: exercise.name,
-              description: exercise.description.replace(/(<([^>]+)>)/gi, ""),
-              image: image,
-              category: categoryName,
-              showDescription: false,
-            };
-          }
+        // Map the fetched exercises to the expected format
+        const exercisesWithImages: Exercise[] = response.data.map(
+          (exercise: any) => ({
+            id: exercise.id,
+            name: exercise.name,
+            description: exercise.target,
+            image: exercise.gifUrl,
+            category: exercise.bodyPart || "Uncategorized",
+            showDescription: false,
+          })
         );
 
         setExercises(exercisesWithImages);
-        setCategories(HARD_CODED_CATEGORIES);
+
+        const uniqueCategories: string[] = [
+          ...new Set(exercisesWithImages.map((ex) => ex.category)),
+        ];
+        setCategories(uniqueCategories);
       } catch (error) {
-        console.error("Error fetching exercises or images:", error);
+        console.error("Error fetching exercises:", error);
         setErrorMessage("Failed to load exercises. Please try again later.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
+    fetchExercises();
   }, []);
 
   useEffect(() => {
@@ -129,7 +100,7 @@ const HomeScreen = () => {
     ]).start();
   }, [clickCounter]);
 
-  const toggleDescription = (id: number) => {
+  const toggleDescription = (id: string) => {
     setExercises((prevExercises) =>
       prevExercises.map((exercise) =>
         exercise.id === id
@@ -195,6 +166,7 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.profileContainer}>
         <Image
           source={require("../assets/images/avatar.jpg")}
@@ -203,6 +175,7 @@ const HomeScreen = () => {
         <Text style={styles.welcomeText}>Hello, Rukshan Fernando</Text>
       </View>
 
+      {/* Search Bar */}
       <View style={styles.searchBarContainer}>
         <TextInput
           style={styles.searchBar}
@@ -212,6 +185,7 @@ const HomeScreen = () => {
         />
       </View>
 
+      {/* Categories */}
       <View style={styles.categoriesWrapper}>
         <ScrollView
           horizontal
@@ -224,8 +198,6 @@ const HomeScreen = () => {
               selectedCategory === null && styles.activeCategory,
             ]}
             onPress={() => handleCategorySelect(null)}
-            accessibilityLabel="Select All Categories"
-            accessibilityRole="button"
           >
             <Text style={styles.categoryText}>All</Text>
           </TouchableOpacity>
@@ -237,8 +209,6 @@ const HomeScreen = () => {
                 selectedCategory === category && styles.activeCategory,
               ]}
               onPress={() => handleCategorySelect(category)}
-              accessibilityLabel={`Select ${category} Category`}
-              accessibilityRole="button"
             >
               <Text style={styles.categoryText}>{category}</Text>
             </TouchableOpacity>
@@ -246,26 +216,18 @@ const HomeScreen = () => {
         </ScrollView>
       </View>
 
+      {/* Exercises */}
       <View style={styles.exercisesWrapper}>
         <FlatList
           data={currentExercises}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
               key={item.id}
               style={styles.card}
               onPress={() => toggleDescription(item.id)}
-              activeOpacity={0.8}
-              accessibilityLabel={`Exercise: ${item.name}`}
-              accessibilityRole="button"
             >
-              {item.image ? (
-                <Image source={{ uri: item.image }} style={styles.image} />
-              ) : (
-                <View style={styles.imagePlaceholder}>
-                  <Text style={styles.placeholderText}>No Image</Text>
-                </View>
-              )}
+              <Image source={{ uri: item.image }} style={styles.image} />
               <View style={styles.textContainer}>
                 <Text style={styles.title}>{item.name}</Text>
                 {item.showDescription && (
@@ -281,6 +243,7 @@ const HomeScreen = () => {
         />
       </View>
 
+      {/* Pagination */}
       <View style={styles.pagination}>
         <TouchableOpacity
           style={[
@@ -289,8 +252,6 @@ const HomeScreen = () => {
           ]}
           onPress={handlePreviousPage}
           disabled={currentPage === 1}
-          accessibilityLabel="Go to Previous Page"
-          accessibilityRole="button"
         >
           <Text style={styles.paginationText}>Previous</Text>
         </TouchableOpacity>
@@ -302,13 +263,12 @@ const HomeScreen = () => {
           ]}
           onPress={handleNextPage}
           disabled={currentPage * exercisesPerPage >= filteredExercises.length}
-          accessibilityLabel="Go to Next Page"
-          accessibilityRole="button"
         >
           <Text style={styles.paginationText}>Next</Text>
         </TouchableOpacity>
       </View>
 
+      {/* Click Counter */}
       <Animated.View
         style={[styles.counterCircle, { transform: [{ scale: scaleValue }] }]}
       >
